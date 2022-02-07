@@ -14,7 +14,7 @@ terraform {
     region         = "us-west-2"
     encrypt        = true
     dynamodb_table = "terraform-lock"
-    role_arn       = "arn:aws:iam::476761402556:role/terraform-backend"
+    #role_arn       = "arn:aws:iam::476761402556:role/terraform-backend"
   }
 }
 
