@@ -1,12 +1,25 @@
 provider "aws" {
-  region = "us-west-2"
+  region = var.region
+}
+
+locals {
+  tags = merge(var.tags, {
+    Environment : var.environment,
+    Owner : "PagoPa",
+    Source : "https://github.com/uolter/terraform-aws-example.git"
+  })
 }
 
 # terraform state file setup
 # create an S3 bucket to store the state file in
+
+resource "random_integer" "bucket_suffix" {
+  min = 1
+  max = 9999
+}
 resource "aws_s3_bucket" "terraform-state-storage-s3" {
-  bucket = "terraform-backend-11048"
-  # region = "us-west-2"
+  bucket = format("terraform-backend-%4f", random_integer.bucket_suffix.result)
+
 
   versioning {
     # enable with caution, makes deleting S3 buckets tricky
@@ -17,11 +30,9 @@ resource "aws_s3_bucket" "terraform-state-storage-s3" {
     prevent_destroy = true
   }
 
-  tags = {
+  tags = merge(local.tags, {
     name = "S3 Remote Terraform State Store"
-    proj = "example-iac"
-    env  = "prod"
-  }
+  })
 }
 
 # create a DynamoDB table for locking the state file
@@ -36,9 +47,8 @@ resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
     type = "S"
   }
 
-  tags = {
+  tags = merge(local.tags, {
     name = "DynamoDB Terraform State Lock Table"
-    proj = "example-iac"
-    env  = "prod"
-  }
+  })
+
 }
